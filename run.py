@@ -1,4 +1,4 @@
-from random import shuffle
+from random import shuffle, choice
 import json
 
 #from pypdf import PdfReader
@@ -67,15 +67,11 @@ class TrainWords:
                 key_value = words[target]["ru"]
                 desc = words[target].get("desc")
                 hits = words[target].get("hits")
-            print('111111111111111111111')
             if self.pass_word(hits):
-                print("pass words", words[target]["ru"])
                 self.update_matched_dict_words(target, words[target], hited=True)
                 self.MATCHED.append(target)
                 self.STORAGE = None
                 continue
-            print('22222222222222222')
-
             
             if self.PROMPT == 0:#self.COUNT words
                 self.COUNT_WORDS += 1
@@ -137,7 +133,7 @@ class TrainWords:
                 hit += 1
             else:
                 hit -= 1
-            if hit > 10:
+            if hit > choice([10,11,12,13]):
                 hit = 2
             key_value['hits'] = hit
             if "en" not in key_value:
@@ -163,8 +159,8 @@ class TrainWords:
         with open('words.json', 'w', encoding='utf-8') as f:
             json.dump(dict(sorted(self.UPDATED_DICT_WORDS.items())), f, ensure_ascii=False, indent=4)
 
-    def pass_word(self, hits: int):
-        return hits > 3
+    def pass_word(self, hits: int=0):
+        return hits > 3 if hits else False
 
 
 if __name__ == '__main__':
