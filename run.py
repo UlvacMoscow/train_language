@@ -1,6 +1,6 @@
 from random import shuffle, choice
 import json
-
+import sys
 #from pypdf import PdfReader
 
 #reader = PdfReader("3000.pdf")
@@ -14,13 +14,15 @@ def get_sentences():
     with open('sentences.json', 'r') as f:
         return json.load(f)
 
-def get_words_training():
-    with open('words.json', 'r') as f:
-        return json.load(f)
+def get_words_training(mode="train"):
+    if mode == "train":
+        with open('words.json', 'r') as f:
+            return json.load(f)
+    elif mode == "test":
+        with open('test.json', 'r') as f:
+            return json.load(f)
 
-words = get_words_training()
 sentences = get_sentences() or dict()
-english = list(words.keys())
 
 
 def get_random_words():
@@ -44,6 +46,9 @@ class TrainWords:
     NEXT = True
     COUNTER = 0
     UPDATED_DICT_WORDS = dict()
+    
+    def __init__(self, mode="train"):
+        self.mode = mode
 
     def run(self,):
 
@@ -77,7 +82,7 @@ class TrainWords:
                 self.COUNT_WORDS += 1
             
             word = input(f"{target} \n")
-            if word == key_value:
+            if word in key_value:
                 self.MATCHED.append(target)
                 self.STORAGE = None
                 self.COUNTER += 1
@@ -95,7 +100,7 @@ class TrainWords:
                 sentences_target = None
                 if target in sentences:
                     sentences_target = sentences[target]
-                    print("Examples: ")
+
                     for sent in sentences_target:
                         print(sent)
                 
@@ -133,7 +138,7 @@ class TrainWords:
                 hit += 1
             else:
                 hit -= 1
-            if hit > choice([10,11,12,13]):
+            if hit > choice([10, 12, 14, 16]):
                 hit = 2
             key_value['hits'] = hit
             if "en" not in key_value:
@@ -154,14 +159,23 @@ class TrainWords:
             json.dump(sentences, f, ensure_ascii=False, indent=4)
         self.save_updated_words()
 
-    def save_updated_words(self):
-        
-        with open('words.json', 'w', encoding='utf-8') as f:
-            json.dump(dict(sorted(self.UPDATED_DICT_WORDS.items())), f, ensure_ascii=False, indent=4)
+    def save_updated_words(self, mode="train"):
+        if self.mode == "train":
+            with open('words.json', 'w', encoding='utf-8') as f:
+                json.dump(dict(sorted(self.UPDATED_DICT_WORDS.items())), f, ensure_ascii=False, indent=4)
+        elif self.mode == "test":
+            with open('test.json', 'w', encoding='utf-8') as f:
+                json.dump(dict(sorted(self.UPDATED_DICT_WORDS.items())), f, ensure_ascii=False, indent=4)
+            
 
     def pass_word(self, hits: int=0):
         return hits > 3 if hits else False
 
 
 if __name__ == '__main__':
-    TrainWords().run()
+    mode = "train"
+    if len(sys.argv) > 1:
+        mode = sys.argv[1]
+    words = get_words_training(mode)
+    english = list(words.keys())
+    TrainWords(mode).run()
