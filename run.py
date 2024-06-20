@@ -23,8 +23,6 @@ def get_words_training(mode="train"):
             return json.load(f)
 
 
-
-
 def get_random_words():
     if english:
         shuffle(english)
@@ -39,7 +37,7 @@ class TrainWords:
     PROMPT = 0
     COUNT_WORDS = 0
     COUNTER = 0
-    LIMIT_ONE_SESSION = 70
+    LIMIT_WORDS_SESSION = 70
     MATCHED = []
     UPDATED_DICT_WORDS = dict()
 
@@ -165,6 +163,8 @@ class TrainWords:
             
 
     def pass_word(self, hits: int=0):
+        if self.LIMIT_WORDS_SESSION < self.COUNT_WORDS:
+            return True
         return hits > 3 if hits else False
 
 
