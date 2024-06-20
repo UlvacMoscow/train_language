@@ -40,21 +40,67 @@ def compatable(target):
 
 class TrainWords:
     STORAGE = None
+    NEXT = True
     PROMPT = 0
     COUNT_WORDS = 0
-    MATCHED = []
-    NEXT = True
     COUNTER = 0
+    LIMIT_ONE_SESSION = 70
+    MATCHED = []
     UPDATED_DICT_WORDS = dict()
-    
+
+
     def __init__(self, mode="train"):
         self.mode = mode
+
+    def show_result(self,):
+        print(f"count words {self.COUNT_WORDS}")
+        print(f"score {self.COUNTER}")
+
+    def check_match(self, key_value:list, target:str, word:str): 
+        if word in key_value:
+            self.MATCHED.append(target)
+            self.STORAGE = None
+            self.COUNTER += 1
+            self.PROMPT = 0
+            self.update_matched_dict_words(target, words[target], hited=True)
+
+            print("----- correct -----")
+        else:
+            self.PROMPT += 1
+            print("------- wrong --------")
+    
+    def show_prior_sentences(self, sentences:list, target: str):
+        sentences_target = None
+        if target in sentences:
+            sentences_target = sentences[target]
+            for sent in sentences_target:
+                print(sent)
+        return sentences_target
+    
+    def clean_prompt_and_storage(self):
+        self.STORAGE = None
+        self.PROMPT = 0
+    
+    def add_or_create_sentences(self, response:str, sentences_target):
+        if sentences_target:
+            sentences_target.append(response)
+        else:
+            sentences_target = [response]
+        return sentences_target
+    
+    def next_word(self):
+        target = get_random_words()
+
+        self.STORAGE = target
+        target = self.STORAGE
+
 
     def run(self,):
 
         while self.NEXT:
             key_value = None
             desc = None
+            #self.next_word()
             if not self.STORAGE:
                 target = get_random_words()
                 if not target:
@@ -78,49 +124,28 @@ class TrainWords:
                 self.STORAGE = None
                 continue
             
-            if self.PROMPT == 0:#self.COUNT words
+            if self.PROMPT == 0:
                 self.COUNT_WORDS += 1
             
             word = input(f"{target} \n")
-            if word in key_value:
-                self.MATCHED.append(target)
-                self.STORAGE = None
-                self.COUNTER += 1
-                self.PROMPT = 0
-                self.update_matched_dict_words(target, words[target], hited=True)
+            self.check_match(key_value, target, word)
 
-                print("++++++++++правильно++++++++++")
-            else:
-                self.PROMPT += 1
-                print("------------не правильно--------")
             if self.PROMPT > 1:
-                print("Придумайте предложение с этим словом")
                 print(f"{target}-{key_value}")
-                print('смысл слова', desc)
-                sentences_target = None
-                if target in sentences:
-                    sentences_target = sentences[target]
-
-                    for sent in sentences_target:
-                        print(sent)
+                print('', desc)
+                sentences_target = self.show_prior_sentences(sentences, target)
                 
-                resp = input(f"Введите предложение \n")
+                resp = input(f"come up with a sentense with |{target}| \n")
 
                 self.MATCHED.append(target)
                 self.update_matched_dict_words(target, words[target], hited=False)
 
-                self.STORAGE = None
-                self.PROMPT = 0
+                self.clean_prompt_and_storage()
                 if resp:
-                    if sentences_target:
-                        sentences_target.append(resp)
-                    else:
-                        sentences_target = [resp]
-                    sentences[target] = sentences_target
+                    sentences[target] = self.add_or_create_sentences(resp, sentences_target)
             print("")
         self.save_sentences(sentences)
-        print(f"общее кол-во слов {self.COUNT_WORDS}")
-        print(f"ваш счет {self.COUNTER}")
+        self.show_result()
 
     def update_matched_dict_words(self, key: str, key_value, hited) -> None:
         if compatable(key_value) == 'str':
