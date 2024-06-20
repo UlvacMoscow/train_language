@@ -22,7 +22,7 @@ def get_words_training(mode="train"):
         with open('test.json', 'r') as f:
             return json.load(f)
 
-sentences = get_sentences() or dict()
+
 
 
 def get_random_words():
@@ -32,14 +32,9 @@ def get_random_words():
     else:
         return None
     
-def compatable(target):
-    if isinstance(target, str):
-        return "str"
-    if isinstance(target, dict):
-        return "dict"
+
 
 class TrainWords:
-    STORAGE = None
     NEXT = True
     PROMPT = 0
     COUNT_WORDS = 0
@@ -59,15 +54,15 @@ class TrainWords:
     def check_match(self, key_value:list, target:str, word:str): 
         if word in key_value:
             self.MATCHED.append(target)
-            self.STORAGE = None
             self.COUNTER += 1
             self.PROMPT = 0
             self.update_matched_dict_words(target, words[target], hited=True)
-
+            target = None
             print("----- correct -----")
         else:
             self.PROMPT += 1
             print("------- wrong --------")
+        return target
     
     def show_prior_sentences(self, sentences:list, target: str):
         sentences_target = None
@@ -77,9 +72,9 @@ class TrainWords:
                 print(sent)
         return sentences_target
     
-    def clean_prompt_and_storage(self):
-        self.STORAGE = None
+    def clean_prompt_and_target(self):
         self.PROMPT = 0
+        return None
     
     def add_or_create_sentences(self, response:str, sentences_target):
         if sentences_target:
@@ -88,47 +83,33 @@ class TrainWords:
             sentences_target = [response]
         return sentences_target
     
-    def next_word(self):
-        target = get_random_words()
-
-        self.STORAGE = target
-        target = self.STORAGE
-
 
     def run(self,):
-
+        target = None
         while self.NEXT:
+            
+            if not target:
+                target = get_random_words()
+            if not target:
+                break
+            
             key_value = None
             desc = None
-            #self.next_word()
-            if not self.STORAGE:
-                target = get_random_words()
-                if not target:
-                    break
-                self.STORAGE = target
-            else:
-                target = self.STORAGE
             
-            
-            key_type = compatable(words[target])
-            if key_type == "str":
-                key_value = words[target]
-                hits = 0
-            elif key_type == "dict":
-                key_value = words[target]["ru"]
-                desc = words[target].get("desc")
-                hits = words[target].get("hits")
+            key_value = words[target]["ru"]
+            desc = words[target].get("desc")
+            hits = words[target].get("hits")
             if self.pass_word(hits):
                 self.update_matched_dict_words(target, words[target], hited=True)
                 self.MATCHED.append(target)
-                self.STORAGE = None
+                target = None
                 continue
             
             if self.PROMPT == 0:
                 self.COUNT_WORDS += 1
             
             word = input(f"{target} \n")
-            self.check_match(key_value, target, word)
+            target = self.check_match(key_value, target, word)
 
             if self.PROMPT > 1:
                 print(f"{target}-{key_value}")
@@ -140,43 +121,33 @@ class TrainWords:
                 self.MATCHED.append(target)
                 self.update_matched_dict_words(target, words[target], hited=False)
 
-                self.clean_prompt_and_storage()
                 if resp:
                     sentences[target] = self.add_or_create_sentences(resp, sentences_target)
-            print("")
+                target = self.clean_prompt_and_target()
+            print()
         self.save_sentences(sentences)
         self.show_result()
 
     def update_matched_dict_words(self, key: str, key_value, hited) -> None:
-        if compatable(key_value) == 'str':
-            self.UPDATED_DICT_WORDS[key] = {"ru": key_value,
-                                            "en": "",
-                                            "desc": "",
-                                            "other": ["", "", ""],
-                                            "tags": ["", "", ""],
-                                            "lvl": "",
-                                            "hits": 1 if hited else 0
-                                            }
-        else:#dict
-            hit = key_value.get('hits', 0)
-            if hited:
-                hit += 1
-            else:
-                hit -= 1
-            if hit > choice([10, 12, 14, 16]):
-                hit = 2
-            key_value['hits'] = hit
-            if "en" not in key_value:
-                key_value["en"] = ""
-            if "lvl" not in key_value:
-                key_value["lvl"] = ""
-            if "desc" not in key_value:
-                key_value["desc"] = ""
-            if "other" not in key_value:
-                key_value["other"] = [""]
-            if "tags" not in key_value:
-                key_value["tags"] = [""]            
-            self.UPDATED_DICT_WORDS[key] = key_value
+        hit = key_value.get('hits', 0)
+        if hited:
+            hit += 1
+        else:
+            hit -= 1
+        if hit > choice([10, 12, 14, 16]):
+            hit = 2
+        key_value['hits'] = hit
+        if "en" not in key_value:
+            key_value["en"] = ""
+        if "lvl" not in key_value:
+            key_value["lvl"] = ""
+        if "desc" not in key_value:
+            key_value["desc"] = ""
+        if "other" not in key_value:
+            key_value["other"] = [""]
+        if "tags" not in key_value:
+            key_value["tags"] = [""]            
+        self.UPDATED_DICT_WORDS[key] = key_value
         
 
     def save_sentences(self, sentences):
@@ -203,4 +174,5 @@ if __name__ == '__main__':
         mode = sys.argv[1]
     words = get_words_training(mode)
     english = list(words.keys())
+    sentences = get_sentences() or dict()
     TrainWords(mode).run()
