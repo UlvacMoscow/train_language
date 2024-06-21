@@ -10,9 +10,16 @@ import sys
 #    text += page.extract_text() + "\n"
 
 
+def backup_words(words:dict, mode:str):
+    if mode == "train":
+        with open('backup.json', 'w', encoding='utf-8') as f:
+            json.dump(dict(sorted(words.items())), f, ensure_ascii=False, indent=4)
+
+
 def get_sentences():
     with open('sentences.json', 'r') as f:
         return json.load(f)
+
 
 def get_words_training(mode="train"):
     if mode == "train":
@@ -173,6 +180,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         mode = sys.argv[1]
     words = get_words_training(mode)
+    backup_words(words, mode)
     english = list(words.keys())
     sentences = get_sentences() or dict()
     TrainWords(mode).run()
