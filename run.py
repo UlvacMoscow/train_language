@@ -103,8 +103,7 @@ class TrainWords:
             
             key_value = words[target]["ru"]
             desc = words[target].get("desc")
-            hits = words[target].get("hits")
-            if self.pass_word(hits):
+            if self.skip_word(words[target]):
                 self.update_matched_dict_words(target, words[target], hited=True)
                 self.MATCHED.append(target)
                 target = None
@@ -169,10 +168,17 @@ class TrainWords:
                 json.dump(dict(sorted(self.UPDATED_DICT_WORDS.items())), f, ensure_ascii=False, indent=4)
             
 
-    def pass_word(self, hits: int=0):
+    def skip_word(self, word: dict):
+        skip = False
+        hits = word.get("hits")
+        archive = word.get('archive', False)
+        if archive:
+            skip = True
         if self.LIMIT_WORDS_SESSION < self.COUNT_WORDS:
-            return True
-        return hits > 3 if hits else False
+            skip = True
+        if hits and hits > 3:
+            skip = True
+        return skip
 
 
 if __name__ == '__main__':
@@ -180,6 +186,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         mode = sys.argv[1]
     words = get_words_training(mode)
+    print('all words in dict', len(words.keys()))
     backup_words(words, mode)
     english = list(words.keys())
     sentences = get_sentences() or dict()
