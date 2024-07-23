@@ -12,6 +12,7 @@ def save_words(updated_words):
 def patching(words: dict) -> dict:
     """func for patching structure in words.json"""
     updated_words = dict()
+    print(len(words.keys()))
     for key in words.keys():
         temp = words[key]
         temp["ru"] = [temp["ru"]]
@@ -22,7 +23,7 @@ def patching(words: dict) -> dict:
 if __name__ == "__main__":
     words = get_words()
     result = patching(words)
-    save_words(result)
+    #save_words(result)
 
 
 

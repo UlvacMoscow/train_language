@@ -17,7 +17,8 @@
             ""
         ],
         "lvl": "",
-        "hits": 1
+        "hits": 3,
+        "archive": true
     },
     "abandon": {
         "ru": [
@@ -36,7 +37,8 @@
             ""
         ],
         "lvl": "b2",
-        "hits": 0
+        "hits": 5,
+        "archive": false
     },
     "able": {
         "ru": [
@@ -55,6 +57,7 @@
             ""
         ],
         "lvl": "a2",
-        "hits": -2
+        "hits": 1,
+        "archive": false
     }
 }

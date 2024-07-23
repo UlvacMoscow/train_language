@@ -150,7 +150,9 @@ class TrainWords:
         if "other" not in key_value:
             key_value["other"] = [""]
         if "tags" not in key_value:
-            key_value["tags"] = [""]            
+            key_value["tags"] = [""]
+        if "archive" not in key_value:
+            key_value["archive"] = False
         self.UPDATED_DICT_WORDS[key] = key_value
         
 
