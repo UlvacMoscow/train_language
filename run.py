@@ -189,7 +189,7 @@ if __name__ == '__main__':
         mode = sys.argv[1]
     words = get_words_training(mode)
     print('all words in dict', len(words.keys()))
-    backup_words(words, mode)
+    #backup_words(words, mode)
     english = list(words.keys())
     sentences = get_sentences() or dict()
     TrainWords(mode).run()
